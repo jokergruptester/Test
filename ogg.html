@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joker Group - Recrutamento</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #0d0d0d;
+            color: #c0c0c0;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #800080;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .message {
+            background-color: #111;
+            padding: 20px;
+            border-left: 3px solid #800080;
+            margin-bottom: 30px;
+        }
+        .question {
+            background-color: #111;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 3px solid #800080;
+        }
+        textarea, input[type="email"] {
+            width: 100%;
+            background-color: #222;
+            border: 1px solid #333;
+            color: #e0e0e0;
+            padding: 8px;
+            margin-top: 5px;
+            font-family: inherit;
+        }
+        button {
+            background-color: #800080;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-family: inherit;
+            display: block;
+            margin: 30px auto;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #a000a0;
+        }
+        #encryptedView {
+            display: none;
+            text-align: center;
+            margin-top: 50px;
+        }
+        #encryptedData {
+            background-color: #111;
+            padding: 15px;
+            font-family: monospace;
+            word-break: break-all;
+            white-space: pre-wrap;
+            margin: 20px auto;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        .warning {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div id="formView">
+        <h1>JOKER GROUP</h1>
+        
+        <div class="message">
+            <p><strong>Você foi identificado como potencial candidato.</strong></p>
+            <p>Estamos recrutando indivíduos excepcionais para operações discretas.</p>
+            <p>Responda com sinceridade. Não desperdice nosso tempo.</p>
+        </div>
+
+        <form id="recruitmentForm">
+            <div class="question">
+                <p><strong>1. Como você descobriu o mundo do hacking?</strong></p>
+                <textarea name="q1" rows="3" required></textarea>
+            </div>
+
+            <div class="question">
+                <p><strong>2. Qual sua principal habilidade técnica?</strong></p>
+                <textarea name="q2" rows="3" required></textarea>
+            </div>
+
+            <div class="question">
+                <p><strong>3. Descreva sua maior conquista na área</strong></p>
+                <textarea name="q3" rows="3" required></textarea>
+            </div>
+
+            <div class="question">
+                <p><strong>4. Qual sua motivação para se juntar a nós?</strong></p>
+                <textarea name="q4" rows="3" required></textarea>
+            </div>
+
+            <div class="question">
+                <p><strong>5. Seu e-mail para contato (PGP preferencial):</strong></p>
+                <input type="email" name="contact" required placeholder="seu@email.com">
+            </div>
+
+            <button type="submit">ENVIAR CREDENCIAIS</button>
+        </form>
+
+        <p class="warning">Esta sessão será encerrada após envio. Não haverá segunda chance.</p>
+    </div>
+
+    <div id="encryptedView">
+        <h1>DADOS ENVIADOS</h1>
+        <p>O conteúdo foi criptografado com chave descartável</p>
+        <div id="encryptedData"></div>
+    </div>
+
+    <script>
+        // Configurações
+        const WEBHOOK_URL = 'https://discord.com/api/webhooks/1398030246875234334/ZwqRQ13QuGzpc63H4iUuZDJpwwHOWxgk_To0eJ2KcFAC4sjcpPo3yQwp5kyxaPEuL4I4';
+        const ENCRYPTION_KEY = window.crypto.getRandomValues(new Uint8Array(32));
+        const BLOCK_KEY = 'joker_blocked_' + location.href;
+
+        // Verificar se já foi enviado
+        if (localStorage.getItem(BLOCK_KEY)) {
+            showEncryptedView();
+        }
+
+        // Envio do formulário
+        document.getElementById('recruitmentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Validar e-mail
+            const email = document.querySelector('input[type="email"]').value;
+            if (!validateEmail(email)) {
+                alert('Forneça um e-mail válido');
+                return;
+            }
+
+            // Coletar respostas
+            const formData = new FormData(this);
+            const answers = {
+                discovery: formData.get('q1'),
+                skill: formData.get('q2'),
+                achievement: formData.get('q3'),
+                motivation: formData.get('q4'),
+                contact: email,
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent
+            };
+
+            // Enviar para webhook
+            try {
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        content: 'Nova candidatura Joker Group',
+                        embeds: [{
+                            title: 'Candidato Potencial',
+                            fields: [
+                                { name: 'Descoberta', value: answers.discovery || 'N/A' },
+                                { name: 'Habilidade', value: answers.skill || 'N/A' },
+                                { name: 'Conquista', value: answers.achievement || 'N/A' },
+                                { name: 'Motivação', value: answers.motivation || 'N/A' },
+                                { name: 'Contato', value: answers.contact || 'N/A' },
+                                { name: 'Dispositivo', value: answers.userAgent || 'N/A' }
+                            ],
+                            timestamp: answers.timestamp
+                        }]
+                    })
+                });
+            } catch (e) {
+                console.error('Erro no webhook:', e);
+            }
+
+            // Criptografar e bloquear
+            await encryptAndBlock(JSON.stringify(answers));
+        });
+
+        // Validação de e-mail
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        // Criptografia AES-GCM
+        async function encryptAndBlock(data) {
+            try {
+                const iv = window.crypto.getRandomValues(new Uint8Array(12));
+                const encoded = new TextEncoder().encode(data);
+                
+                const ciphertext = await window.crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv },
+                    await window.crypto.subtle.importKey(
+                        'raw',
+                        ENCRYPTION_KEY,
+                        { name: 'AES-GCM' },
+                        false,
+                        ['encrypt']
+                    ),
+                    encoded
+                );
+                
+                // Marcar como bloqueado
+                localStorage.setItem(BLOCK_KEY, '1');
+                
+                // Exibir dados criptografados
+                showEncryptedView({
+                    iv: Array.from(iv).map(b => b.toString(16).padStart(2, '0')).join(''),
+                    ciphertext: Array.from(new Uint8Array(ciphertext)).map(b => b.toString(16).padStart(2, '0')).join('')
+                });
+
+                // Destruir chave
+                ENCRYPTION_KEY.fill(0);
+                
+                // Bloquear funcionalidades
+                window.history.pushState(null, '', '/');
+                document.title = 'Sessão Encerrada';
+                
+            } catch (error) {
+                console.error('Erro na criptografia:', error);
+                alert('Erro no processamento');
+            }
+        }
+
+        function showEncryptedView(data) {
+            document.getElementById('formView').style.display = 'none';
+            document.getElementById('encryptedView').style.display = 'block';
+            
+            if (data) {
+                document.getElementById('encryptedData').textContent = 
+                    `IV: ${data.iv}\n\nDADOS: ${data.ciphertext}`;
+            }
+        }
+    </script>
+</body>
+</html>
